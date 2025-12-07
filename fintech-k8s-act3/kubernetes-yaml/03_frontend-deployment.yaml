@@ -21,7 +21,7 @@ spec:
       containers:
       - name: frontend-container
         # **¡IMPORTANTE!** Reemplaza 'tu-usuario' por tu usuario real de Docker Hub/ECR
-        image: tu-usuario/fintech-frontend:1.0 
+        image: jfcpjimmy/fintech-frontend:1.0 
         ports:
         - containerPort: 80
         resources:

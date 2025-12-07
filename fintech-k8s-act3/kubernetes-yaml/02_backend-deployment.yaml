@@ -21,7 +21,7 @@ spec:
       containers:
       - name: backend-container
         # **¡IMPORTANTE!** Reemplaza 'tu-usuario' por tu usuario real de Docker Hub/ECR
-        image: tu-usuario/fintech-backend:1.0 
+        image: jfcpjimmy/fintech-backend:1.0 
         ports:
         - containerPort: 3000
         # Configuración de variables de conexión a la DB
