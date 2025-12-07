@@ -87,6 +87,10 @@ spec:
           - name: initdb-config
             mountPath: /docker-entrypoint-initdb.d
       volumes:
-        - name: initdb-config
+        # Define el almacenamiento efímero (solución para AWS Academy)
+        - name: mysql-persistent-storage
+          emptyDir: {}
+          # Montaje para el script de inicialización
+          - name: initdb-config
           configMap:
             name: mysql-init-script
