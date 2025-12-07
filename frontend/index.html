@@ -1,0 +1,44 @@
+<!--
+Frontend de FinTech Demo
+------------------------
+Capa de presentación estática servida con Nginx.
+Consume la API REST expuesta por el backend.
+-->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>FinTech Demo App</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>💰 FinTech Demo</h1>
+  <p>Aplicación de ejemplo con tres capas (Frontend + Backend + MySQL)</p>
+
+  <button id="btnCargar">📄 Mostrar Cuentas</button>
+  <ul id="lista"></ul>
+
+  <script>
+    // Función que obtiene los datos del backend
+    async function cargarCuentas() {
+      const respuesta = await fetch('http://backend-service:3000/api/cuentas');
+      const cuentas = await respuesta.json();
+
+      const lista = document.getElementById('lista');
+      lista.innerHTML = '';
+
+      cuentas.forEach(cuenta => {
+        const item = document.createElement('li');
+        item.textContent = `${cuenta.nombre}: $${cuenta.saldo}`;
+        lista.appendChild(item);
+      });
+    }
+
+    // Asignar evento al botón
+    document.getElementById('btnCargar').addEventListener('click', cargarCuentas);
+  </script>
+</body>
+</html>
+
+

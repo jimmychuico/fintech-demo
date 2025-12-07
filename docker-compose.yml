@@ -1,0 +1,46 @@
+# Define la versión del esquema de docker-compose.
+# La versión 3.9 es estable y soporta redes, volúmenes y dependencias entre servicios, lo que la hace ideal para entornos de desarrollo y despliegue modernos.
+version: '3.9'
+
+services:
+  # Servicio de base de datos
+  db:
+    image: mysql:8.0
+    container_name: fintech-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # Servicio backend
+  backend:
+    build: ./backend
+    container_name: fintech-backend
+    restart: always
+    environment:
+      DB_HOST: db
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  # Servicio frontend
+  frontend:
+    build: ./frontend
+    container_name: fintech-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+# Volumen persistente para MySQL
+volumes:
+  db_data:
