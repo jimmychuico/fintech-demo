@@ -90,13 +90,3 @@ spec:
         - name: initdb-config
           configMap:
             name: mysql-init-script
-  # 5. Definición de Almacenamiento (Persistent Volume Claim Template)
-  volumeClaimTemplates:
-  - metadata:
-      name: mysql-persistent-storage
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          # Solicita 5 GB. AWS EKS usará el Default StorageClass (EBS).
-          storage: 5Gi
