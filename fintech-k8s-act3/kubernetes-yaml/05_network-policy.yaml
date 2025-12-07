@@ -1,0 +1,51 @@
+# kubernetes-yaml/05_network-policy.yaml
+
+# 1. Política de Aislamiento para el Backend
+# Solo permite el tráfico entrante desde el Frontend (Puerto 3000)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      tier: backend # Aplica a todos los Pods con la etiqueta 'tier: backend'
+  policyTypes:
+    - Ingress # Controla el tráfico de ENTRADA
+  ingress:
+    # 1. Permite el tráfico entrante desde el Frontend
+    - from:
+        - podSelector:
+            matchLabels:
+              tier: frontend # Solo Pods con la etiqueta 'tier: frontend'
+      ports:
+        - protocol: TCP
+          port: 3000 # Solo al puerto de la API (3000)
+    # 2. Permite el tráfico entrante desde el Control Plane de K8s (para chequeos de salud, etc.)
+    - from:
+        - namespaceSelector: {} # Permite tráfico de cualquier Namespace
+          podSelector: {}
+---
+# 2. Política de Aislamiento para la Base de Datos
+# Solo permite el tráfico entrante desde el Backend (Puerto 3306)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: mysql-db # Aplica al Pod de la DB
+  policyTypes:
+    - Ingress
+  ingress:
+    # Solo permite el tráfico entrante desde el Backend
+    - from:
+        - podSelector:
+            matchLabels:
+              tier: backend # Solo Pods con la etiqueta 'tier: backend'
+      ports:
+        - protocol: TCP
+          port: 3306 # Solo al puerto de MySQL (3306)

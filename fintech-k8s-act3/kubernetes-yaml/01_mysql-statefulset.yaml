@@ -1,0 +1,102 @@
+# kubernetes-yaml/01_mysql-statefulset.yaml
+
+# 1. Secret (Definición de seguridad para credenciales)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-credentials
+stringData:
+  MYSQL_ROOT_PASSWORD: root 
+  MYSQL_DATABASE: fintechdb
+  DB_USER: root
+  DB_PASSWORD: root
+---
+# 2. ConfigMap (Para el script de inicialización de la DB)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-script
+data:
+  # Contenido del archivo init.sql (para crear tablas)
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS fintechdb;
+    USE fintechdb;
+    CREATE TABLE IF NOT EXISTS cuentas (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      nombre VARCHAR(100),
+      saldo DECIMAL(10,2)
+    );
+    INSERT INTO cuentas (nombre, saldo)
+    VALUES ('Cuenta Ahorros', 1200.50),
+           ('Cuenta Corriente', 845.75),
+           ('Inversión', 5000.00);
+---
+# 3. Headless Service para la DB (Permite que StatefulSet funcione)
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+  labels:
+    app: mysql-db
+spec:
+  ports:
+    - port: 3306
+      targetPort: 3306
+  selector:
+    app: mysql-db
+  clusterIP: None 
+---
+# 4. StatefulSet (Carga de trabajo para la DB con estado)
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-db
+spec:
+  serviceName: "mysql-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-db
+  template:
+    metadata:
+      labels:
+        app: mysql-db
+    spec:
+      containers:
+      - name: mysql-db
+        image: mysql:8.0 # Imagen base de MySQL
+        ports:
+        - containerPort: 3306
+        # Cargar variables de entorno desde el Secret
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-credentials
+                key: MYSQL_ROOT_PASSWORD
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: mysql-credentials
+                key: MYSQL_DATABASE
+        volumeMounts:
+          # Montaje para los datos persistentes
+          - name: mysql-persistent-storage
+            mountPath: /var/lib/mysql
+          # Montaje para el script de inicialización
+          - name: initdb-config
+            mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: initdb-config
+          configMap:
+            name: mysql-init-script
+  # 5. Definición de Almacenamiento (Persistent Volume Claim Template)
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-persistent-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          # Solicita 5 GB. AWS EKS usará el Default StorageClass (EBS).
+          storage: 5Gi

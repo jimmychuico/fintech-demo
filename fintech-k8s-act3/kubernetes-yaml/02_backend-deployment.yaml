@@ -1,0 +1,52 @@
+# kubernetes-yaml/02_backend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  labels:
+    app: fintech-app
+    tier: backend
+spec:
+  replicas: 2 # Escalamiento: 2 copias para resiliencia
+  selector:
+    matchLabels:
+      app: fintech-app
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: fintech-app
+        tier: backend
+    spec:
+      containers:
+      - name: backend-container
+        # **¡IMPORTANTE!** Reemplaza 'tu-usuario' por tu usuario real de Docker Hub/ECR
+        image: tu-usuario/fintech-backend:1.0 
+        ports:
+        - containerPort: 3000
+        # Configuración de variables de conexión a la DB
+        env:
+          - name: DB_HOST
+            value: mysql-service # Usa el nombre del Service de la DB
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: mysql-credentials
+                key: MYSQL_DATABASE
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysql-credentials
+                key: DB_USER
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-credentials
+                key: DB_PASSWORD
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"

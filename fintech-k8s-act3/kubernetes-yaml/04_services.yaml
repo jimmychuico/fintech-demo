@@ -1,0 +1,41 @@
+# kubernetes-yaml/04_services.yaml
+
+# 1. Service Interno para el Backend
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  labels:
+    app: fintech-app
+    tier: backend
+spec:
+  selector:
+    app: fintech-app
+    tier: backend
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+  type: ClusterIP 
+---
+# 2. Service Externo para el Frontend (Usa AWS Load Balancer)
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  labels:
+    app: fintech-app
+    tier: frontend
+  # Anotaciones para usar un NLB (más económico y rápido)
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+spec:
+  selector:
+    app: fintech-app
+    tier: frontend
+  ports:
+    - protocol: TCP
+      port: 80 
+      targetPort: 80 
+  type: LoadBalancer # El LoadBalancer se crea automáticamente en AWS EKS

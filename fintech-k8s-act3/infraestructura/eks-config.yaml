@@ -1,0 +1,17 @@
+# infraestructura/eks-config.yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: fintech-eks-cluster
+  region: us-east-1 # Usa la región de tu AWS Academy
+  version: "1.28" # Versión de Kubernetes
+
+# Definición del grupo de nodos trabajadores (Worker Nodes)
+nodeGroups:
+  - name: fintech-worker-ng
+    instanceType: t3.medium # Tipo de instancia para AWS Academy
+    minSize: 2 # Requisito: clúster de dos nodos
+    maxSize: 3
+    desiredCapacity: 2
+    amiFamily: AmazonLinux2
